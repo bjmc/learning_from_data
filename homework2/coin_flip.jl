@@ -17,10 +17,9 @@ function get_proportions(all_flips)
 end
 
 function multiple_runs(N)
-    results = DataFrame(Float64, 3, N)
-    names!(results, map(symbol, ["v1", "vrand", "vmin"]))
+    results = DataFrame(v1=Float64[], vrand=Float64[], vmin=Float64[])
     for r in 1:N
-        results[:, r] = [get_proportions(flip_coins())...]
+        push!(results, [get_proportions(flip_coins())...])
     end
     return results
 end
