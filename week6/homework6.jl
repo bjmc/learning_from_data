@@ -24,6 +24,13 @@ function linear_regression(points, values)
     return pseudoinv(points) * values
 end
 
+function regularized_regression(Z, Y, k)
+    λ = 10^float(k)
+    s = size(Z, 2)
+    return inv((transpose(Z) * Z) + λ * eye(s)) * transpose(Z) * Y
+end
+
+
 function check_err(w, points, values)
     results = Array(Bool, size(points,1))
     for i in 1:size(points,1)
@@ -31,5 +38,5 @@ function check_err(w, points, values)
         val = sign(trans(points[i, :]) * w)[1]
         results[i] = !isequal(expected, val)
     end
-    return results
+    return mean(results)
 end
