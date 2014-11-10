@@ -43,14 +43,21 @@ function linear_regression(points, values)
     return pseudoinv(X) * values
 end
 
-function test_matching(N)
+function generate_g(N)
     X, Y, f = get_points(N)
     w = linear_regression(X, Y)
-    matching = Array(Bool, N)
     g(x) = sign(transpose(w) * [1, x[1], x[2]])
-    points = transpose(X)
-    for i in 1:N
-        matching[i] = isequal(h(points[:,i])[1], Y[i])
-    end
-    return matching, g, f
+    return w, X, Y
 end
+
+function test_matching(g, f, points)
+    N = size(points, 1)
+    mismatch = Array(Bool, N)
+    for i in 1:N
+        p = points[i,:]
+        mismatch[i] = !isequal(g(p)[1], f(p))
+    end
+    return mismatch
+end
+
+

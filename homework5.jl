@@ -2,7 +2,7 @@ import Distributions
 
 Uniform = Distributions.Uniform
 
-n = 0.1
+
 E(u, v) = (u*e^v - 2*v*e^(-u))^2
 
 du(u, v) = 2*(e^v + 2*v*e^(-u))*(u*e^v - 2*v*e^(-u))
@@ -54,4 +54,72 @@ function get_f()
         end
     end
     return f
+end
+
+function get_points(N, f=nothing)
+    if f === nothing
+        f = get_f()
+    end
+    points = rand_points(N)
+    values = Array(Int64, N)
+    for i = 1:N
+        values[i] = f(points[:,i])
+    end
+    return points, values, f
+end
+
+function setup(N)
+    points, values, f = get_points(N)
+    w = zeros(1, 3)
+    return f, w, points, values
+end
+
+n = 0.01
+
+function grad(w, x, y)
+    return -(x * y) / (1+e^(y * (w*x)[1]))
+end
+
+function logistic_regression(epochs, N, stop)
+    target_f, w, training, values = setup(N)
+    training = vcat(ones(1, N), training)
+    for i in 1:epochs
+        #println("epoch is ", i)
+        order = sort([1:N], by=x->rand())
+        new_w = w
+        for j in order
+            point = training[:, j]
+            value = values[j]
+            g = grad(w, point, value)
+            new_w = new_w - (n * transpose(g))
+        end
+        #println("w is ", w)
+        #println("new_w is ", new_w)
+        step = norm(w - new_w)
+        #println("step is ", step)
+        if step < stop
+            return new_w, i, target_f
+        end
+        w = new_w
+    end
+end
+
+function err(x, y, w)
+    log(1+e^(-y * (w*x)[1]))
+end
+
+function problem8(runs=100, N=100)
+    average_err = Array(Float64, runs)
+    for run in 1:runs
+        w, epoch, f = logistic_regression(500, N, 0.01)
+        out_points, out_values, f = get_points(N, f)
+        out_points = vcat(ones(1, N), out_points)
+        summation = 0.0
+        for i in 1:N
+            summation += err(out_points[:, i], out_values[i], w)
+        end
+        total_err = summation / N
+        average_err[run] = total_err
+    end
+    return mean(average_err)
 end
